@@ -1,0 +1,48 @@
+<div class="weekly-tracker-container">
+  <h2>Suivi Hebdomadaire 🗓️</h2>
+
+  <div class="form">
+    <input
+      type="text"
+      placeholder="Titre de l’objectif"
+      [(ngModel)]="newGoalTitle"
+    />
+    <textarea
+      placeholder="Description (optionnel)"
+      [(ngModel)]="newGoalDescription"
+    ></textarea>
+    <button (click)="addWeeklyGoal()">Ajouter l’objectif</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Objectif</th>
+        <th *ngFor="let day of weekDays">
+          {{ day | date: 'EEE dd/MM' }}
+        </th>
+        <th>Réalisation</th>
+        <th>Feedback</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let goal of weeklyGoals">
+        <td>
+          <strong>{{ goal.title }}</strong>
+          <br />
+          <small>{{ goal.description }}</small>
+        </td>
+        <td *ngFor="let day of weekDays; let i = index">
+          <button (click)="toggleStatus(goal, i)"
+            [class.done]="goal.daysStatus[i] === 'done'"
+            [class.missed]="goal.daysStatus[i] === 'missed'"
+          >
+            {{ goal.daysStatus[i] === 'done' ? '✅' : goal.daysStatus[i] === 'missed' ? '❌' : '—' }}
+          </button>
+        </td>
+        <td>{{ getProgress(goal) }}/7</td>
+        <td>{{ getFeedback(getProgress(goal)) }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

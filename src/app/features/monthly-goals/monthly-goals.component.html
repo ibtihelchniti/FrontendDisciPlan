@@ -1,0 +1,45 @@
+<div class="monthly-goals">
+  <h2>📅 Objectifs mensuels</h2>
+
+  <div class="form">
+    <label>Mois :
+      <input type="month" [(ngModel)]="selectedMonth" (change)="onMonthChange()"/>
+    </label>
+
+    <label>Titre de l'objectif :
+      <input type="text" [(ngModel)]="newGoal.title" placeholder="Ex : Faire du sport" />
+    </label>
+
+    <label>Description :
+      <textarea [(ngModel)]="newGoal.description"></textarea>
+    </label>
+
+    <label>Catégorie :
+      <input type="text" [(ngModel)]="customCategory" placeholder="Ex : Santé (optionnel)"/>
+    </label>
+
+    <label>Nombre de jours d'engagement :
+      <input type="number" [(ngModel)]="newGoal.totalDays" [max]="daysInMonth" [min]="1" />
+    </label>
+
+    <button (click)="addGoal()">➕ Ajouter</button>
+  </div>
+
+  <div *ngFor="let goal of goals" class="goal-card">
+    <h3>{{ goal.title }} <small *ngIf="goal.category">({{ goal.category }})</small></h3>
+    <p>{{ goal.description }}</p>
+
+    <div class="calendar">
+      <span
+        *ngFor="let day of [].constructor(goal.totalDays); let i = index"
+        (click)="toggleProgress(goal, i+1)"
+        [class.done]="goal.progress[i+1]"
+        [class.undone]="goal.progress[i+1] === false">
+        {{ i + 1 }}
+      </span>
+    </div>
+
+    <progress [value]="getCompletionRate(goal)" max="100"></progress>
+    <p>{{ getCompletionRate(goal) }}% – {{ getFeedback(getCompletionRate(goal)) }}</p>
+  </div>
+</div>
