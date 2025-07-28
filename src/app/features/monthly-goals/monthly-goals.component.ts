@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MonthlyGoalsService } from './monthly-goals.service';
@@ -12,7 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
   templateUrl: './monthly-goals.component.html',
   styleUrls: ['./monthly-goals.component.scss']
 })
-export class MonthlyGoalsComponent {
+export class MonthlyGoalsComponent implements OnInit {
   today = new Date();
   selectedMonth: string = this.today.toISOString().slice(0, 7); // format YYYY-MM
   daysInMonth = this.getDaysInMonth(this.selectedMonth);
@@ -20,7 +20,10 @@ export class MonthlyGoalsComponent {
   goals: Goal[] = [];
   customCategory = '';
 
-  constructor(private goalService: MonthlyGoalsService) {
+  constructor(private goalService: MonthlyGoalsService) {}
+
+  ngOnInit() {
+    this.loadGoals();
     this.goalService.goals$.subscribe(goals => {
       this.goals = goals.filter(g => g.selectedMonth === this.selectedMonth);
     });
@@ -33,29 +36,38 @@ export class MonthlyGoalsComponent {
 
   onMonthChange() {
     this.daysInMonth = this.getDaysInMonth(this.selectedMonth);
+    this.loadGoals();
+  }
+
+  loadGoals() {
+    this.goalService.fetchGoals(this.selectedMonth);
   }
 
   addGoal() {
     if (!this.newGoal.title) return;
 
-    const goal: Goal = {
+    const goal = {
       id: uuidv4(),
       title: this.newGoal.title!,
       description: this.newGoal.description || '',
-      category: this.customCategory || this.newGoal.category,
+      category: this.customCategory || this.newGoal.category || '',
       totalDays: this.newGoal.totalDays || this.daysInMonth,
       selectedMonth: this.selectedMonth,
       progress: {},
     };
 
-    this.goalService.addGoal(goal);
-    this.newGoal = {};
-    this.customCategory = '';
+    this.goalService.addGoal(goal).subscribe(() => {
+      this.loadGoals();
+      this.newGoal = {};
+      this.customCategory = '';
+    });
   }
 
   toggleProgress(goal: Goal, day: number) {
-    goal.progress[day] = !goal.progress[day];
-    this.goalService.updateGoal(goal);
+    const newValue = !goal.progress[day];
+    this.goalService.updateProgress(goal.id, day, newValue).subscribe(() => {
+      goal.progress[day] = newValue;
+    });
   }
 
   getCompletionRate(goal: Goal): number {
